@@ -5,12 +5,6 @@
 export const environment = {
   production: false,
   fireBase: {
-    apiKey: 'AIzaSyCx7WJowPV1yvzJsntQsy0Ps3q7uCbM_YA',
-    authDomain: 'portfolio-293c6.firebaseapp.com',
-    databaseURL: 'https://portfolio-293c6.firebaseio.com',
-    projectId: 'portfolio-293c6',
-    storageBucket: 'portfolio-293c6.appspot.com',
-    messagingSenderId: '534600740911',
    }
 };
 
