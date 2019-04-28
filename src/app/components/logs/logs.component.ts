@@ -22,7 +22,7 @@ export class LogsComponent implements OnInit {
            id: '', text: '', date: ''
          }
        }
-     })
+     });
      this.logService.getLogs().subscribe( logs => {
        this.logs = logs;
         this.loaded = true;});
