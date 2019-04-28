@@ -1,68 +1,65 @@
 import {Injectable} from '@angular/core';
 import {Log} from '../models/log';
-import {BehaviorSubject} from 'rxjs';
-import {of} from 'rxjs';
+import {BehaviorSubject, Observable} from 'rxjs';
+import { AngularFirestore, AngularFirestoreCollection, AngularFirestoreDocument } from '@angular/fire/firestore';
+import { map } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
 })
+// Log service uses firebase to perform basic operations
 export class LogService {
+  logDocument: AngularFirestoreDocument<Log>;
+  logCollection: AngularFirestoreCollection<Log>;
+  log: Observable<any>;
+  logsObservable: Observable<Log[]>;
 
-  logs: Log[];
   private behaviourSubject = new BehaviorSubject<Log>({id: null, text: null, date: null});
   selectedLog = this.behaviourSubject.asObservable();
 
   private behaviourSubjectState = new BehaviorSubject<boolean>(true);
   selectedLogState = this.behaviourSubjectState.asObservable();
 
-  constructor() {
-    /*this.logs = [{id: '1', text: 'Generate Components', date: new Date('12/26/2017 12:54:23')},
-     {id: '2', text: 'Added Bootstrap', date: new Date('12/26/2017 12:54:23')},
-     {id: '3', text: 'Added Logs component', date: new Date('12/26/2017 12:54:23')}];*/
-    this.logs = [];
+  constructor(private angularFireStore: AngularFirestore) {
+    this.logCollection = angularFireStore.collection('devlogs', ref => ref.orderBy('date', 'asc'));
   }
 
-  getLogs() {
-    if (localStorage.getItem('logs') === null) {
-      this.logs = [];
-    } else {
-      this.logs = JSON.parse(localStorage.getItem('logs'));
-    }
-    return of(this.logs.sort((a, b) => {
-      return b.date = a.date;
-    }));
+  // Show Existing Logs
+  getLogs(): Observable<Log[]> {
+    this.logsObservable = this.logCollection.snapshotChanges().pipe(
+      map(changes => changes.map(
+        action => {
+          const data = action.payload.doc.data() as Log;
+          data.id = action.payload.doc.id;
+          return data;
+        })));
+    return this.logsObservable;
   }
 
   setFormLog(log: Log) {
     this.behaviourSubject.next(log);
   }
 
+  // Add New
   addLogs(log: Log) {
-    this.logs.unshift(log);
-    localStorage.setItem('logs', JSON.stringify(this.logs));
+    this.logCollection.add(log).then(function (event) {
+      console.log('Added Log to the collection', event.id);
+    });
   }
 
+  // Update Log
   updateLog(log: Log) {
-    this.logs.forEach((current, index) => {
-      if (log.id === current.id) {
-        this.logs.splice(index, 1);
-      }
+    this.logDocument = this.angularFireStore.doc<Log>(`devlogs/${log.id}`);
+    this.logDocument.update(log).then(function () {
+      console.log('Updated Log Item');
     });
-    localStorage.setItem('logs', JSON.stringify(this.logs));
-    this.logs.unshift(log);
   }
 
+  // Delete Log
   deleteLog(log: Log) {
-    this.logs.forEach((current, index) => {
-      if (current.id === log.id) {
-        this.logs.splice(index, 1);
-      }
+    this.logDocument = this.angularFireStore.doc<Log>(`devlogs/${log.id}`);
+    this.logDocument.delete().then(function () {
+      console.log('Deleted Log Item');
     });
-    localStorage.setItem('logs', JSON.stringify(this.logs));
   }
-
-  /*clearState() {
-    this.behaviourSubjectState.next(true);
-
-  }*/
 }
