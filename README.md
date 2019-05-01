@@ -8,7 +8,7 @@ To Get Started
 
 -- Clone the repository 
 
--- Run commange npm install from the project directory 
+-- Run commang 'npm install' from the project directory 
 
 -- Set up a free angular fire base account and copy the API key into the environment.ts file 
 
